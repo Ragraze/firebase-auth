@@ -1,9 +1,10 @@
 const { admin } = require("../config/firebase");
 
-const verifyToken = async (req, res, next) => {
+const verifyTokenBeforeLogin = async (req, res, next) => {
 	const idToken = req.cookies.access_token;
 	if (!idToken) {
-		return res.status(403).json({ error: "No token provided" });
+		return res.status(403).redirect("/api/login");
+		// res.json({ error: "No token provided" });
 	}
 
 	try {
@@ -15,5 +16,24 @@ const verifyToken = async (req, res, next) => {
 		return res.status(403).json({ error: "Unauthorized" });
 	}
 };
+const verifyTokenAfterLogin = async (req, res, next) => {
+	const idToken = req.cookies.access_token;
+	if (idToken) {
+		try {
+			const decodedToken = await admin.auth().verifyIdToken(idToken);
+			req.user = decodedToken;
+			return res.redirect("/api/dashboard"); // Redirect to dashboard if already logged in
+		} catch (error) {
+			console.error("Error verifying token:", error);
+			return res.status(403).json({ error: "Unauthorized" });
+		}
+	} else {
+		next(); // Proceed to the next middleware or route handler if no token
+		// res.json({ error: "No token provided" });
+	}
+};
 
-module.exports = verifyToken;
+module.exports = {
+	verifyTokenBeforeLogin,
+	verifyTokenAfterLogin,
+};
