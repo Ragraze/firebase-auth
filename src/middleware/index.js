@@ -22,13 +22,15 @@ const verifyTokenAfterLogin = async (req, res, next) => {
 		try {
 			const decodedToken = await admin.auth().verifyIdToken(idToken);
 			req.user = decodedToken;
-			return res.redirect("/api/dashboard"); // Redirect to dashboard if already logged in
+			return res.redirect("/api/dashboard");
 		} catch (error) {
-			console.error("Error verifying token:", error);
-			return res.status(403).json({ error: "Unauthorized" });
+			next();
+			// console.error("Error verifying token:", error);
+			// return res.status(403).json({ error: "Unauthorized" });
 		}
 	} else {
-		next(); // Proceed to the next middleware or route handler if no token
+		next(); 
+		// Proceed to the next middleware or route handler if no token
 		// res.json({ error: "No token provided" });
 	}
 };
